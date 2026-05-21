@@ -368,7 +368,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "pdf_merge"
+name = "pdf-merge"
 version = "0.1.0"
 dependencies = [
  "dialoguer",
