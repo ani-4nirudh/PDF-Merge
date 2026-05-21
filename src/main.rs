@@ -6,7 +6,7 @@ use std::fs;
 use std::path::Path;
 
 // To build interactive UI
-use inquire::{Text, Autocomplete, validator::Validation, CustomUserError, ui::{Color, RenderConfig, StyleSheet}};
+use inquire::{Select, Text, Autocomplete, validator::Validation, CustomUserError, ui::{Color, RenderConfig, StyleSheet}};
 
 // Creating a custom struct for live auto-completion
 #[derive(Clone, Default)]
@@ -171,7 +171,19 @@ fn get_file_names() -> Option<Vec<String>> {
 
                 let expanded = shellexpand::tilde(&trimmed).into_owned();
                 file_paths.push(expanded.to_string());
-                println!("Staged files: {} \n", trimmed);
+
+                // Display the files in queue
+                println!("\n  Staged Files:");
+                for (index, path) in file_paths.iter().enumerate() {
+                    let path_obj = Path::new(path);
+                    // Extract just the filename to keep it short and clean
+                    let filename = path_obj.file_name()
+                        .map(|n| n.to_string_lossy().into_owned())
+                        .unwrap_or_else(|| path.clone());
+                        
+                    println!("    [{}] {}", index + 1, filename);
+                }
+                println!(); // Extra line
 
                 file_counter += 1;
             }
@@ -222,12 +234,13 @@ fn prompt_output_name() -> Option<String> {
 }
 
 fn execute_merge(output_name: String, file_paths: Vec<String>) {
-    let merge_prompt = Text::new("Type 'm' and press 'Enter' to perform the merge:")
-        .with_placeholder("m")
+    let options = vec!["Proceed with Merge", "Cancel and Exit"];
+    let confirmation = Select::new("Ready to finalise?", options)
+        .with_help_message("Use arrow keys to select")
         .prompt();
 
-    match merge_prompt {
-        Ok(input) if input.trim().eq_ignore_ascii_case("m") => {
+    match confirmation {
+        Ok("Proceed with Merge") => {
             println!("Executing PDF merge ...");
 
             let merge_cmd = Command::new("gs")
@@ -242,19 +255,21 @@ fn execute_merge(output_name: String, file_paths: Vec<String>) {
             let stderr = String::from_utf8_lossy(&merge_cmd.stderr);
             
             if merge_cmd.status.success() {
-                println!("Created the merged PDF : {}", output_name);
+                println!("Created the merged PDF: {}", output_name);
             } else {
                 println!("ERROR: {}", stderr);
             }
         }
 
+        Ok("Cancel and Exit") => {
+            println!("Merge cancelled by user. Aborting ...");
+        }
+
         Err(_) => {
-            println!("Merge cancelled. Abort!\n");
+            println!("Prompt interrupted with Ctrl+C. Exiting ...");
         }
-     
-        _ => {
-            println!("Invalid input. Merge aborted.\n");
-        }
+
+        _ => unreachable!(),
     }
 }
 
