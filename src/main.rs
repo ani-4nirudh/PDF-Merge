@@ -95,19 +95,19 @@ fn main() {
 
     setup_theme();
     
-    // Collect the file paths for the PDFst
+    // 1. Collect the file paths for the PDFst
     let file_paths: Vec<String> = match get_file_names() {
         Some(paths) => paths,
         None => return,
     };
     
-    // Enter the output filename
+    // 2. Enter the output filename
     let output_name: String = match prompt_output_name() {
         Some(name) => name,
         None => return,
     };
 
-    // Perform merge
+    // 3. Perform merge
     execute_merge(output_name, file_paths);
 }
 
