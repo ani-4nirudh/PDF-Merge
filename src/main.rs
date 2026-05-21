@@ -92,6 +92,7 @@ fn main() {
     println!("----- Merge PDF App -----");
     println!("-------------------------\n");
     println!("Select your PDFs. Type 'c' and hit 'Enter' to confirm when you are done collecting.\n");
+    println!("Hit 'Esc' to exit tool\n");
 
     setup_theme();
     
