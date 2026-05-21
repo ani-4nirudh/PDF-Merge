@@ -1,10 +1,15 @@
 [package]
 name = "pdfmerge"
-version = "1.0.4"
-license = "MIT"
+version = "1.0.5"
 edition = "2024"
+license = "MIT"
+
 authors = ["Anirudh Singh <anirudh.sai8296@gmail.com>"]
 description = "An interactive CLI tool to merge multiple PDFs using Ghostscript"
+repository = "https://github.com/ani-4nirudh/PDF-Merge"
+readme = "README.md"
+documentation = "https://docs.rs/pdfmerge"
+homepage = "https://github.com/ani-4nirudh/PDF-Merge"
 
 [dependencies]
 dialoguer = "0.11"
