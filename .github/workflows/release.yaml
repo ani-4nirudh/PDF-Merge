@@ -27,8 +27,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_type == 'tag' && github.ref_name || 'latest' }}
-          make_latest: ${{ github.ref_type != 'tag' }}
-          name: ${{ github.ref_type == 'tag' && github.ref_name || 'Latest Development Build' }}
+          name: ${{ github.ref_type == 'tag' && github.ref_name || 'Nightly Build' }}
           files: target/debian/*.deb
           generate_release_notes: true
         env:
