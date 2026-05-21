@@ -19,7 +19,7 @@ jobs:
         run: cargo install cargo-deb
 
       - name: Generate Debian Source Package
-        run: cargo deb --src
+        run: cargo deb
 
       - name: Upload to Launchpad PPA
         uses: yuezk/publish-ppa-package@v2
