@@ -21,18 +21,6 @@ jobs:
       - name: Generate Debian Source Package
         run: cargo deb
 
-      - name: Upload to Launchpad PPA
-        uses: yuezk/publish-ppa-package@v2
-        with:
-          # Targets your main Launchpad archive drawer
-          repository: "ani-4nirudh/ppa" 
-          gpg_private_key: ${{ secrets.PPA_GPG_PRIVATE_KEY }}
-          gpg_passphrase: ${{ secrets.PPA_GPG_PASSPHRASE }}
-          tarball: "target/debian/*.deb"
-          deb_email: "anirudh.sai8296@gmail.com"
-          deb_fullname: "Anirudh Singh"
-          series: "noble jammy"
-
       - name: Create Automated GitHub Release
         uses: softprops/action-gh-release@v2
         with:
