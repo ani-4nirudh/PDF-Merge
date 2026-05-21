@@ -1,5 +1,6 @@
 # Introduction
 This is an interactive CLI PDF merge utility. 
+![Demo Preview](assets/screenrecording.gif)
 
 # Run tool locally
 ```
