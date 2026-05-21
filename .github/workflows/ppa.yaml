@@ -2,8 +2,8 @@ name: Publish to Ubuntu PPA
 
 on:
   push:
-    branches:
-      - 'main'
+    tags:
+      - 'v*'
 
 jobs:
   publish-ppa:
@@ -28,7 +28,15 @@ jobs:
           repository: "ani-4nirudh/ppa" 
           gpg_private_key: ${{ secrets.PPA_GPG_PRIVATE_KEY }}
           gpg_passphrase: ${{ secrets.PPA_GPG_PASSPHRASE }}
-          tarball: "target/debian/*.changes"
+          tarball: "target/debian/*.deb"
           deb_email: "anirudh.sai8296@gmail.com"
           deb_fullname: "Anirudh Singh"
           series: "noble jammy"
+
+      - name: Create Automated GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: target/debian/*.deb
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
