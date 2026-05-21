@@ -1,6 +1,6 @@
 [package]
-name = "pdf-merge"
-version = "0.1.0"
+name = "pdfmerge"
+version = "1.0.0"
 license = "MIT"
 edition = "2024"
 authors = ["Anirudh Singh <anirudh.sai8296@gmail.com>"]
@@ -10,10 +10,6 @@ description = "An interactive CLI tool to merge multiple PDFs using Ghostscript"
 dialoguer = "0.11"
 inquire = "0.9.4"
 shellexpand = "3.0"
-
-[[bin]]
-name = "pdfmerge"
-path = "src/main.rs"
 
 [package.metadata.deb]
 maintainer = "Anirudh Singh <anirudh.sai8296@gmail.com"

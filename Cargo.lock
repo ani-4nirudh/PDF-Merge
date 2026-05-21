@@ -368,8 +368,8 @@ dependencies = [
 ]
 
 [[package]]
-name = "pdf-merge"
-version = "0.1.0"
+name = "pdfmerge"
+version = "1.0.0"
 dependencies = [
  "dialoguer",
  "inquire",
