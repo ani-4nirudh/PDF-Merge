@@ -1,16 +1,24 @@
-// Merge pdfs using command line arguments
+// Interactive PDF merger
 
+// Native tools
 use std::process::Command;
 use std::fs;
 use std::path::Path;
-use inquire::{Text, Autocomplete, validator::Validation, CustomUserError};
 
+// To build interactive UI
+use inquire::{Text, Autocomplete, validator::Validation, CustomUserError, ui::{Color, RenderConfig, StyleSheet}};
+
+// Creating a custom struct for live auto-completion
 #[derive(Clone, Default)]
 struct LivePathCompleter;
 
 impl Autocomplete for LivePathCompleter {
+    /* Get suggestions for the file paths as you type them */
     fn get_suggestions(&mut self, input: &str) -> Result<Vec<String>, CustomUserError> {
-        let input_path = Path::new(input);
+        
+        // Expand the '~' for /home/username/
+        let expanded_input = shellexpand::tilde(input).into_owned();
+        let input_path = Path::new(&expanded_input);
 
         let (dir_scan, filename_prefix) = if input.ends_with('/') || input.is_empty() {
             (input_path, "")
@@ -36,8 +44,19 @@ impl Autocomplete for LivePathCompleter {
         let mut suggestions = Vec::new();
         for entry in entries.flatten() {
             let path = entry.path();
-            let mut path_str = path.to_string_lossy().into_owned();
             let name_str = entry.file_name().to_string_lossy().into_owned();
+
+            let mut path_str = if input.starts_with("~") {
+                if let Some(last_slash_idx) = input.rfind("/") {
+                    let mut base = input[..last_slash_idx + 1].to_string();
+                    base.push_str(&name_str);
+                    base
+                } else {
+                    format!("/home/{}", name_str)
+                }
+            } else {
+                path.to_string_lossy().into_owned()
+            };
 
             if !name_str.starts_with(filename_prefix) {
                 continue;
@@ -69,11 +88,39 @@ impl Autocomplete for LivePathCompleter {
 } 
 
 fn main() {
-    
     println!("\n-------------------------");
     println!("----- Merge PDF App -----");
     println!("-------------------------\n");
     println!("Select your PDFs. Type 'c' and hit 'Enter' to confirm when you are done collecting.\n");
+
+    setup_theme();
+    
+    // Collect the file paths for the PDFst
+    let file_paths: Vec<String> = match get_file_names() {
+        Some(paths) => paths,
+        None => return,
+    };
+    
+    // Enter the output filename
+    let output_name: String = match prompt_output_name() {
+        Some(name) => name,
+        None => return,
+    };
+
+    // Perform merge
+    execute_merge(output_name, file_paths);
+}
+
+fn setup_theme() {
+    // Set up app render configuration
+    let mut custom_theme = RenderConfig::default();
+    custom_theme.selected_option = Some(
+        StyleSheet::new().with_bg(Color::Rgb {r: 25, g: 75, b: 0})
+        );
+    inquire::set_global_render_config(custom_theme);
+}
+
+fn get_file_names() -> Option<Vec<String>> {
     let mut file_paths: Vec<String> = Vec::new();
     let mut file_counter = 1;
     loop {
@@ -98,7 +145,9 @@ fn main() {
                     return Ok(Validation::Invalid("Filename must end with '.pdf'".into()))
                 }
 
-                if !Path::new(trimmed).exists() {
+                let expanded_path = shellexpand::tilde(trimmed).into_owned();
+
+                if !Path::new(&expanded_path).exists() {
                     return Ok(Validation::Invalid("This file does not exist in your system.".into()))
                 }
 
@@ -120,7 +169,8 @@ fn main() {
                     }
                 }
 
-                file_paths.push(trimmed.to_string());
+                let expanded = shellexpand::tilde(&trimmed).into_owned();
+                file_paths.push(expanded.to_string());
                 println!("Staged files: {} \n", trimmed);
 
                 file_counter += 1;
@@ -128,15 +178,17 @@ fn main() {
 
             Err(_) => {
                 println!("Prompt cancelled. Exiting ...");
-                return;
+                return None
             }
         }
     }
+    Some(file_paths)
+}
 
+fn prompt_output_name() -> Option<String> {
     /* 
     Get name of the output file from the user prompt
     */
-    let mut final_output_name = String::new();
     let merge_name = Text::new("Enter the output PDF name:")
         .with_default("merged.pdf")
         .with_placeholder("merged.pdf")
@@ -160,11 +212,16 @@ fn main() {
     match merge_name {
         Ok(name) => {
             println!("Output filename is set to: {}\n", name);
-            final_output_name = name;
+            Some(name)
         },
-        Err(_) => println!("Prompt cancelled.\n"),
+        Err(_) => {
+            println!("Prompt cancelled.\n");
+            None
+        }
     }
+}
 
+fn execute_merge(output_name: String, file_paths: Vec<String>) {
     let merge_prompt = Text::new("Type 'm' and press 'Enter' to perform the merge:")
         .with_placeholder("m")
         .prompt();
@@ -175,7 +232,7 @@ fn main() {
 
             let merge_cmd = Command::new("gs")
                 .args(["-dBATCH", "-dNOPAUSE", "-q", "-sDEVICE=pdfwrite"])
-                .arg(format!("-sOutputFile={}", final_output_name))
+                .arg(format!("-sOutputFile={}", output_name))
                 .args(&file_paths)
                 .output()
                 .expect("ERROR: Failed to execute");
@@ -185,7 +242,7 @@ fn main() {
             let stderr = String::from_utf8_lossy(&merge_cmd.stderr);
             
             if merge_cmd.status.success() {
-                println!("Created the merged PDF : {}", final_output_name);
+                println!("Created the merged PDF : {}", output_name);
             } else {
                 println!("ERROR: {}", stderr);
             }
@@ -200,11 +257,4 @@ fn main() {
         }
     }
 }
-    /* To-Do:
-- Get home directory
-- Compile the package for apt repositories
-- MIT licence
-- Create screen recording (mock pdfs)
-- README instructions
-- Have systemwise access using the terminal CLI
- */
+
