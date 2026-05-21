@@ -3,7 +3,7 @@ name: Publish to Ubuntu PPA
 on:
   push:
     tags:
-      - 'v*' # Triggers whenever you push a version tag like v1.0.2
+      - 'main'
 
 jobs:
   publish-ppa:
@@ -28,7 +28,6 @@ jobs:
           repository: "ani-4nirudh/ppa" 
           gpg_private_key: ${{ secrets.PPA_GPG_PRIVATE_KEY }}
           gpg_passphrase: ${{ secrets.PPA_GPG_PASSPHRASE }}
-          # Dynamically captures whatever .changes file cargo-deb outputs
           tarball: "target/debian/*.changes"
           deb_email: "anirudh.sai8296@gmail.com"
           deb_fullname: "Anirudh Singh"
